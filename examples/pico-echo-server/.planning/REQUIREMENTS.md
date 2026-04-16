@@ -55,17 +55,17 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CORE-01 | Phase 1 | Pending |
-| CORE-02 | Phase 1 | Pending |
-| CORE-03 | Phase 1 | Pending |
-| CORE-04 | Phase 2 | Pending |
-| WS-01 | Phase 2 | Pending |
-| WS-02 | Phase 2 | Pending |
-| WS-03 | Phase 3 | Pending |
-| MSG-01 | Phase 2 | Pending |
-| MSG-02 | Phase 2 | Pending |
-| MSG-03 | Phase 3 | Pending |
-| MSG-04 | Phase 3 | Pending |
+| CORE-01 | Phase 1: Embedded WebUI Infrastructure | Pending |
+| CORE-02 | Phase 1: Embedded WebUI Infrastructure | Pending |
+| CORE-03 | Phase 1: Embedded WebUI Infrastructure | Pending |
+| CORE-04 | Phase 2: WebSocket Connection & Messaging | Pending |
+| WS-01 | Phase 2: WebSocket Connection & Messaging | Pending |
+| WS-02 | Phase 2: WebSocket Connection & Messaging | Pending |
+| WS-03 | Phase 3: Markdown Rendering & Polish | Pending |
+| MSG-01 | Phase 2: WebSocket Connection & Messaging | Pending |
+| MSG-02 | Phase 2: WebSocket Connection & Messaging | Pending |
+| MSG-03 | Phase 3: Markdown Rendering & Polish | Pending |
+| MSG-04 | Phase 3: Markdown Rendering & Polish | Pending |
 
 **Coverage:**
 - v1 requirements: 11 total
@@ -74,4 +74,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-04-16*
-*Last updated: 2026-04-16 after initial definition*
+*Last updated: 2026-04-16 after roadmap creation*
