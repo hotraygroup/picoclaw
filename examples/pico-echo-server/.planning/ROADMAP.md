@@ -56,7 +56,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 02-01-PLAN.md — WebSocket client with bidirectional messaging (web/index.html JS logic)
+- [ ] 02-01-PLAN.md — Server echo logic + WebSocket client (main.go + web/index.html)
 
 **UI hint:** yes
 
