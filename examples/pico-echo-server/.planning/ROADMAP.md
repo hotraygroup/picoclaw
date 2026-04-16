@@ -10,7 +10,7 @@ Transforms pico-echo-server from stdin-based CLI to browser-based WebUI with Mar
 
 ## Phases
 
-- [ ] **Phase 1: Embedded WebUI Infrastructure** - Single binary serves WebUI at root path
+- [x] **Phase 1: Embedded WebUI Infrastructure** - Single binary serves WebUI at root path ✓
 - [ ] **Phase 2: WebSocket Connection & Messaging** - Browser WebSocket client sends and receives messages
 - [ ] **Phase 3: Markdown Rendering & Polish** - Messages render as formatted Markdown with auto-reconnect
 
@@ -31,10 +31,10 @@ Transforms pico-echo-server from stdin-based CLI to browser-based WebUI with Mar
   2. Binary size stays under 500KB total (lightweight constraint satisfied)
   3. WebSocket endpoint `/ws` still accepts connections (backward compatibility preserved)
 
-**Plans:** 1 plan
+**Plans:** 1 plan (complete)
 
 Plans:
-- [ ] 01-01-PLAN.md — Add Go embed infrastructure (web/index.html, main.go modification)
+- [x] 01-01-PLAN.md — Add Go embed infrastructure (web/index.html, main.go modification) ✓
 
 **UI hint:** yes
 
@@ -53,7 +53,10 @@ Plans:
   2. Sent messages appear in the output area after server echoes them back
   3. stdin input is no longer required (WebUI is primary interface)
 
-**Plans:** TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 02-01-PLAN.md — WebSocket client with bidirectional messaging (web/index.html JS logic)
 
 **UI hint:** yes
 
@@ -82,8 +85,8 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Embedded WebUI Infrastructure | 0/1 | Planned | - |
-| 2. WebSocket Connection & Messaging | 0/0 | Not started | - |
+| 1. Embedded WebUI Infrastructure | 1/1 | Complete | 2026-04-16 |
+| 2. WebSocket Connection & Messaging | 0/1 | Planned | - |
 | 3. Markdown Rendering & Polish | 0/0 | Not started | - |
 
 ---
@@ -92,9 +95,9 @@ Plans:
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CORE-01 | Phase 1 | Pending |
-| CORE-02 | Phase 1 | Pending |
-| CORE-03 | Phase 1 | Pending |
+| CORE-01 | Phase 1 | Complete |
+| CORE-02 | Phase 1 | Complete |
+| CORE-03 | Phase 1 | Complete |
 | CORE-04 | Phase 2 | Pending |
 | WS-01 | Phase 2 | Pending |
 | WS-02 | Phase 2 | Pending |
@@ -108,4 +111,6 @@ Plans:
 
 ---
 *Roadmap created: 2026-04-16*
-*Ready for planning: `/gsd-plan-phase 1`
+*Phase 1 complete: 2026-04-16*
+*Phase 2 planned: 2026-04-16*
+*Ready for execution: `/gsd-execute-phase 02`
