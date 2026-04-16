@@ -1,28 +1,30 @@
 // pico-echo-server is a minimal Pico Protocol WebSocket server for testing
-// the pico_client channel. It accepts connections, prints received messages
-// to stdout, and forwards stdin lines as message.create to all connected clients.
+// the pico_client channel. It serves an embedded WebUI at the root path
+// for browser-based testing.
 //
 // Usage:
 //
 //	go run ./examples/pico-echo-server -addr :9090 -token secret
 //
-// Then configure pico_client with url=ws://localhost:9090/ws&token=secret.
+// Open http://localhost:9090/ to use the WebUI interface.
 package main
 
 import (
-	"bufio"
+	"embed"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io/fs"
 	"log"
 	"net/http"
-	"os"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
 )
+
+//go:embed all:web
+var webFS embed.FS
 
 type picoMessage struct {
 	Type      string         `json:"type"`
@@ -128,6 +130,15 @@ func (s *server) broadcast(content string) {
 	}
 }
 
+func registerWebUIRoutes(mux *http.ServeMux) {
+	subFS, err := fs.Sub(webFS, "web")
+	if err != nil {
+		log.Fatalf("embed: %v", err)
+	}
+	fileServer := http.FileServer(http.FS(subFS))
+	mux.Handle("/", fileServer)
+}
+
 func main() {
 	addr := flag.String("addr", ":9090", "listen address")
 	token := flag.String("token", "", "auth token (empty = no auth)")
@@ -138,23 +149,13 @@ func main() {
 		conns: make(map[*websocket.Conn]string),
 	}
 
-	http.HandleFunc("/ws", s.handleWS)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/ws", s.handleWS)
+	registerWebUIRoutes(mux)
 
 	log.Printf("listening on %s", *addr)
-	log.Printf("connect with: ws://localhost%s/ws", *addr)
-	fmt.Println("Type messages to send to connected clients (Ctrl+C to quit):")
+	log.Printf("WebUI: http://localhost%s/", *addr)
+	log.Printf("WebSocket: ws://localhost%s/ws", *addr)
 
-	go func() {
-		scanner := bufio.NewScanner(os.Stdin)
-		for scanner.Scan() {
-			line := strings.TrimSpace(scanner.Text())
-			if line == "" {
-				continue
-			}
-			s.broadcast(line)
-			log.Printf("[server] sent: %s", line)
-		}
-	}()
-
-	log.Fatal(http.ListenAndServe(*addr, nil))
+	log.Fatal(http.ListenAndServe(*addr, mux))
 }

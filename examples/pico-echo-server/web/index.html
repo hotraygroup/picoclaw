@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Pico Echo Server</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            margin-bottom: 10px;
+        }
+        #messages {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 400px;
+            overflow-y: auto;
+            background: #f9f9f9;
+        }
+        #input-area {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        #input {
+            flex: 1;
+            resize: vertical;
+            min-height: 60px;
+            padding: 8px;
+            font-family: inherit;
+        }
+        #send {
+            padding: 8px 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Pico Echo Server</h1>
+    <p>WebSocket testing interface</p>
+    <div id="messages"></div>
+    <div id="input-area">
+        <textarea id="input" placeholder="Type message..."></textarea>
+        <button id="send">Send</button>
+    </div>
+
+    <!-- WebSocket logic will be added in Phase 2 -->
+    <!-- Markdown rendering will be added in Phase 3 -->
+</body>
+</html>
