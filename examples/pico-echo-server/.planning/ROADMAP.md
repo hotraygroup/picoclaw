@@ -31,7 +31,10 @@ Transforms pico-echo-server from stdin-based CLI to browser-based WebUI with Mar
   2. Binary size stays under 500KB total (lightweight constraint satisfied)
   3. WebSocket endpoint `/ws` still accepts connections (backward compatibility preserved)
 
-**Plans:** TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 01-01-PLAN.md — Add Go embed infrastructure (web/index.html, main.go modification)
 
 **UI hint:** yes
 
@@ -79,7 +82,7 @@ Transforms pico-echo-server from stdin-based CLI to browser-based WebUI with Mar
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Embedded WebUI Infrastructure | 0/0 | Not started | - |
+| 1. Embedded WebUI Infrastructure | 0/1 | Planned | - |
 | 2. WebSocket Connection & Messaging | 0/0 | Not started | - |
 | 3. Markdown Rendering & Polish | 0/0 | Not started | - |
 
