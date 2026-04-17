@@ -1,4 +1,4 @@
-//go:build !android && ((!darwin && !freebsd) || cgo)
+//go:build systray && !android && ((!darwin && !freebsd) || cgo)
 
 package main
 

@@ -124,9 +124,18 @@ The launcher manages `picoclaw gateway -E` as a subprocess. Chat traffic proxies
 
 Default build tags: `goolm,stdjson`
 
-Special tags:
+Optional build tags (add to reduce binary size):
+- `voice`: WebRTC/audio support (TTS, ASR, voice agent) - adds ~1MB and pion/webrtc dependency
+- `selfupdate`: Self-update command - adds minio/selfupdate dependency
+- `systray`: System tray (web launcher) - adds fyne.io/systray dependency
 - `whatsapp_native`: WhatsApp native support via whatsmeow (larger binary)
 - `bedrock`: AWS Bedrock provider support
+
+Minimal build example:
+```bash
+go build -tags 'goolm,stdjson' ./cmd/picoclaw  # ~25MB
+go build -tags 'goolm,stdjson,voice,selfupdate,systray' ./cmd/picoclaw  # ~26MB (full)
+```
 
 ## Environment Variables
 

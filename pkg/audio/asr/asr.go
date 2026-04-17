@@ -1,3 +1,5 @@
+//go:build voice
+
 package asr
 
 import (

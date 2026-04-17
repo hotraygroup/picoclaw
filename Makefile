@@ -20,6 +20,17 @@ GO?=CGO_ENABLED=0 go
 WEB_GO?=$(GO)
 GO_BUILD_TAGS?=goolm,stdjson
 GOFLAGS?=-v -tags $(GO_BUILD_TAGS)
+
+# Optional build tags (add to GO_BUILD_TAGS to enable):
+#   voice       - Enable WebRTC/audio (TTS, ASR, voice agent) - adds ~1MB
+#   selfupdate  - Enable self-update command - adds minio/selfupdate dependency
+#   systray     - Enable system tray (web launcher) - adds fyne.io/systray dependency
+#   whatsapp_native - Native WhatsApp (whatsmeow) - already exists
+#   bedrock     - AWS Bedrock provider - already exists
+#
+# Example minimal build: go build -tags 'goolm,stdjson' ./cmd/picoclaw
+# Example full build:   go build -tags 'goolm,stdjson,voice,selfupdate,systray' ./cmd/picoclaw
+
 comma:=,
 empty:=
 space:=$(empty) $(empty)
