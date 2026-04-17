@@ -99,6 +99,7 @@ func (s *server) handleWS(w http.ResponseWriter, r *http.Request) {
 		case "message.send":
 			content, _ := msg.Payload["content"].(string)
 			fmt.Printf("[%s] %s\n", sessionID, content)
+			s.broadcast(content)
 
 		case "typing.start":
 			log.Printf("[%s] typing...", sessionID)

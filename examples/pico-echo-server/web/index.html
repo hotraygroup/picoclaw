@@ -21,6 +21,21 @@
             overflow-y: auto;
             background: #f9f9f9;
         }
+        #messages .user {
+            text-align: left;
+            background: #e8e8e8;
+            padding: 8px;
+            margin: 4px 0;
+            border-radius: 4px;
+        }
+        #messages .server {
+            text-align: right;
+            background: #fff;
+            padding: 8px;
+            margin: 4px 0;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
         #input-area {
             margin-top: 10px;
             display: flex;
@@ -48,7 +63,53 @@
         <button id="send">Send</button>
     </div>
 
-    <!-- WebSocket logic will be added in Phase 2 -->
+    <script>
+        const wsUrl = `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/ws`;
+        const ws = new WebSocket(wsUrl);
+
+        const messages = document.getElementById('messages');
+        const input = document.getElementById('input');
+        const sendBtn = document.getElementById('send');
+
+        ws.onopen = () => console.log('WebSocket connected');
+        ws.onclose = () => console.log('WebSocket disconnected');
+        ws.onerror = (e) => console.error('WebSocket error:', e.type);
+
+        ws.onmessage = (e) => {
+            try {
+                const msg = JSON.parse(e.data);
+                if (msg.type === 'message.create') {
+                    const content = msg.payload?.content || '';
+                    appendMessage(content, 'server');
+                }
+            } catch (err) {
+                console.error('parse error:', err);
+            }
+        };
+
+        function appendMessage(content, type) {
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = content;
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        sendBtn.onclick = () => {
+            const content = input.value.trim();
+            if (!content || ws.readyState !== WebSocket.OPEN) return;
+
+            ws.send(JSON.stringify({
+                type: 'message.send',
+                timestamp: Date.now(),
+                payload: { content }
+            }));
+
+            appendMessage(content, 'user');
+            input.value = '';
+        };
+    </script>
+
     <!-- Markdown rendering will be added in Phase 3 -->
 </body>
 </html>
