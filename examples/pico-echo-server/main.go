@@ -99,7 +99,7 @@ func (s *server) handleWS(w http.ResponseWriter, r *http.Request) {
 		case "message.send":
 			content, _ := msg.Payload["content"].(string)
 			fmt.Printf("[%s] %s\n", sessionID, content)
-			s.broadcast(content)
+			s.broadcastExcept(content, conn)
 
 		case "typing.start":
 			log.Printf("[%s] typing...", sessionID)
@@ -113,7 +113,7 @@ func (s *server) handleWS(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *server) broadcast(content string) {
+func (s *server) broadcastExcept(content string, senderConn *websocket.Conn) {
 	msg := picoMessage{
 		Type:      "message.create",
 		Timestamp: time.Now().UnixMilli(),
@@ -124,6 +124,9 @@ func (s *server) broadcast(content string) {
 	defer s.mu.Unlock()
 
 	for conn, sid := range s.conns {
+		if conn == senderConn {
+			continue
+		}
 		msg.SessionID = sid
 		if err := conn.WriteJSON(msg); err != nil {
 			log.Printf("write to %s failed: %v", sid, err)
