@@ -30,7 +30,6 @@ import (
 	"github.com/sipeed/picoclaw/pkg/providers"
 	"github.com/sipeed/picoclaw/pkg/routing"
 	"github.com/sipeed/picoclaw/pkg/session"
-	"github.com/sipeed/picoclaw/pkg/skills"
 	"github.com/sipeed/picoclaw/pkg/state"
 	"github.com/sipeed/picoclaw/pkg/tools"
 	"github.com/sipeed/picoclaw/pkg/utils"
@@ -325,26 +324,6 @@ func registerSharedTools(
 				allowReadPaths,
 			)
 			agent.Tools.Register(loadImageTool)
-		}
-
-		// Skill discovery and installation tools
-		skills_enabled := cfg.Tools.IsToolEnabled("skills")
-		find_skills_enable := cfg.Tools.IsToolEnabled("find_skills")
-		install_skills_enable := cfg.Tools.IsToolEnabled("install_skill")
-		if skills_enabled && (find_skills_enable || install_skills_enable) {
-			registryMgr := skills.NewRegistryManagerFromToolsConfig(cfg.Tools.Skills)
-
-			if find_skills_enable {
-				searchCache := skills.NewSearchCache(
-					cfg.Tools.Skills.SearchCache.MaxSize,
-					time.Duration(cfg.Tools.Skills.SearchCache.TTLSeconds)*time.Second,
-				)
-				agent.Tools.Register(tools.NewFindSkillsTool(registryMgr, searchCache))
-			}
-
-			if install_skills_enable {
-				agent.Tools.Register(tools.NewInstallSkillTool(registryMgr, agent.Workspace))
-			}
 		}
 
 		// Spawn and spawn_status tools share a SubagentManager.

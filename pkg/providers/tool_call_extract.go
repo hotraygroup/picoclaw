@@ -5,6 +5,21 @@ import (
 	"strings"
 )
 
+func findMatchingBrace(text string, pos int) int {
+	depth := 0
+	for i := pos; i < len(text); i++ {
+		if text[i] == '{' {
+			depth++
+		} else if text[i] == '}' {
+			depth--
+			if depth == 0 {
+				return i + 1
+			}
+		}
+	}
+	return pos
+}
+
 // extractToolCallsFromText parses tool call JSON from response text.
 // Both ClaudeCliProvider and CodexCliProvider use this to extract
 // tool calls that the model outputs in its response text.

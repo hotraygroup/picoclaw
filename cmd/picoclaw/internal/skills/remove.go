@@ -18,7 +18,7 @@ func newRemoveCommand() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			return skillsRemoveFromWorkspace(cfg.WorkspacePath(), cfg.Tools.Skills, args[0])
+			return skillsRemoveFromWorkspace(cfg.WorkspacePath(), args[0])
 		},
 	}
 

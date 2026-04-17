@@ -39,69 +39,6 @@ func hiddenValues(key string, value map[string]any, ch *config.Channel) {
 		if settings, ok := v.(*config.PicoSettings); ok {
 			value["token"] = settings.Token.String()
 		}
-	case "telegram":
-		if settings, ok := v.(*config.TelegramSettings); ok {
-			value["token"] = settings.Token.String()
-		}
-	case "discord":
-		if settings, ok := v.(*config.DiscordSettings); ok {
-			value["token"] = settings.Token.String()
-		}
-	case "slack":
-		if settings, ok := v.(*config.SlackSettings); ok {
-			value["bot_token"] = settings.BotToken.String()
-			value["app_token"] = settings.AppToken.String()
-		}
-	case "matrix":
-		if settings, ok := v.(*config.MatrixSettings); ok {
-			value["token"] = settings.AccessToken.String()
-		}
-	case "onebot":
-		if settings, ok := v.(*config.OneBotSettings); ok {
-			value["token"] = settings.AccessToken.String()
-		}
-	case "line":
-		if settings, ok := v.(*config.LINESettings); ok {
-			value["token"] = settings.ChannelAccessToken.String()
-			value["secret"] = settings.ChannelSecret.String()
-		}
-	case "wecom":
-		if settings, ok := v.(*config.WeComSettings); ok {
-			value["secret"] = settings.Secret.String()
-		}
-	case "dingtalk":
-		if settings, ok := v.(*config.DingTalkSettings); ok {
-			value["secret"] = settings.ClientSecret.String()
-		}
-	case "qq":
-		if settings, ok := v.(*config.QQSettings); ok {
-			value["secret"] = settings.AppSecret.String()
-		}
-	case "irc":
-		if settings, ok := v.(*config.IRCSettings); ok {
-			value["password"] = settings.Password.String()
-			value["serv_password"] = settings.NickServPassword.String()
-			value["sasl_password"] = settings.SASLPassword.String()
-		}
-	case "feishu":
-		if settings, ok := v.(*config.FeishuSettings); ok {
-			value["app_secret"] = settings.AppSecret.String()
-			value["encrypt_key"] = settings.EncryptKey.String()
-			value["verification_token"] = settings.VerificationToken.String()
-		}
-	case "teams_webhook":
-		// Expose webhook URLs for hash computation (they contain secrets)
-		vv := value["webhooks"]
-		webhooks := make(map[string]string)
-		if vv != nil {
-			webhooks = vv.(map[string]string)
-		}
-		if settings, ok := v.(*config.TeamsWebhookSettings); ok {
-			for name, target := range settings.Webhooks {
-				webhooks[name] = target.WebhookURL.String()
-			}
-		}
-		value["webhooks"] = webhooks
 	}
 }
 

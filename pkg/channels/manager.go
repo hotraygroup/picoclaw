@@ -401,45 +401,10 @@ func (m *Manager) getChannelConfigAndEnabled(channelName string) (*config.Channe
 	}
 	//nolint:revive
 	switch settings := decoded.(type) {
-	case *config.WhatsAppSettings:
-		if channelType == config.ChannelWhatsApp {
-			return bc, settings.BridgeURL != ""
-		}
-		return bc, channelType == config.ChannelWhatsAppNative && settings.UseNative
-	case *config.MatrixSettings:
-		return bc, settings.Homeserver != "" && settings.UserID != "" && settings.AccessToken.String() != ""
-	case *config.WeComSettings:
-		return bc, settings.BotID != "" && settings.Secret.String() != ""
 	case *config.PicoClientSettings:
 		return bc, settings.URL != ""
-	case *config.DingTalkSettings:
-		return bc, settings.ClientID != ""
-	case *config.SlackSettings:
-		return bc, settings.BotToken.String() != ""
-	case *config.WeixinSettings:
-		return bc, settings.Token.String() != ""
 	case *config.PicoSettings:
 		return bc, settings.Token.String() != ""
-	case *config.IRCSettings:
-		return bc, settings.Server != ""
-	case *config.LINESettings:
-		return bc, settings.ChannelAccessToken.String() != ""
-	case *config.OneBotSettings:
-		return bc, settings.WSUrl != ""
-	case *config.QQSettings:
-		return bc, settings.AppSecret.String() != ""
-	case *config.TelegramSettings:
-		return bc, settings.Token.String() != ""
-	case *config.FeishuSettings:
-		return bc, settings.AppSecret.String() != ""
-	case *config.MaixCamSettings:
-		return bc, true
-	case *config.TeamsWebhookSettings:
-		return bc, true
-	case *config.DiscordSettings:
-		return bc, settings.Token.String() != ""
-	case *config.VKSettings:
-		return bc, settings.GroupID != 0 && settings.Token.String() != ""
 	}
 
 	return bc, bc.Enabled

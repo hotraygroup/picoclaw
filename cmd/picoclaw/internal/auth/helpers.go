@@ -1,34 +1,22 @@
 package auth
 
 import (
-	"bufio"
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
-	"os"
 	"strings"
-	"time"
 
 	"github.com/sipeed/picoclaw/cmd/picoclaw/internal"
 	"github.com/sipeed/picoclaw/pkg/auth"
 	"github.com/sipeed/picoclaw/pkg/config"
-	"github.com/sipeed/picoclaw/pkg/providers"
 )
 
 const (
-	supportedProvidersMsg = "supported providers: openai, anthropic, google-antigravity"
-	defaultAnthropicModel = "claude-sonnet-4.6"
+	supportedProvidersMsg = "supported providers: openai"
 )
 
 func authLoginCmd(provider string, useDeviceCode bool, useOauth bool) error {
 	switch provider {
 	case "openai":
 		return authLoginOpenAI(useDeviceCode)
-	case "anthropic":
-		return authLoginAnthropic(useOauth)
-	case "google-antigravity", "antigravity":
-		return authLoginGoogleAntigravity()
 	default:
 		return fmt.Errorf("unsupported provider: %s (%s)", provider, supportedProvidersMsg)
 	}
@@ -92,244 +80,6 @@ func authLoginOpenAI(useDeviceCode bool) error {
 	return nil
 }
 
-func authLoginGoogleAntigravity() error {
-	cfg := auth.GoogleAntigravityOAuthConfig()
-
-	cred, err := auth.LoginBrowser(cfg)
-	if err != nil {
-		return fmt.Errorf("login failed: %w", err)
-	}
-
-	cred.Provider = "google-antigravity"
-
-	// Fetch user email from Google userinfo
-	email, err := fetchGoogleUserEmail(cred.AccessToken)
-	if err != nil {
-		fmt.Printf("Warning: could not fetch email: %v\n", err)
-	} else {
-		cred.Email = email
-		fmt.Printf("Email: %s\n", email)
-	}
-
-	// Fetch Cloud Code Assist project ID
-	projectID, err := providers.FetchAntigravityProjectID(cred.AccessToken)
-	if err != nil {
-		fmt.Printf("Warning: could not fetch project ID: %v\n", err)
-		fmt.Println("You may need Google Cloud Code Assist enabled on your account.")
-	} else {
-		cred.ProjectID = projectID
-		fmt.Printf("Project: %s\n", projectID)
-	}
-
-	if err = auth.SetCredential("google-antigravity", cred); err != nil {
-		return fmt.Errorf("failed to save credentials: %w", err)
-	}
-
-	appCfg, err := internal.LoadConfig()
-	if err == nil {
-		// Update or add antigravity in ModelList
-		foundAntigravity := false
-		for i := range appCfg.ModelList {
-			if isAntigravityModel(appCfg.ModelList[i].Model) {
-				appCfg.ModelList[i].AuthMethod = "oauth"
-				foundAntigravity = true
-				break
-			}
-		}
-
-		// If no antigravity in ModelList, add it
-		if !foundAntigravity {
-			appCfg.ModelList = append(appCfg.ModelList, &config.ModelConfig{
-				ModelName:  "gemini-flash",
-				Model:      "antigravity/gemini-3-flash",
-				AuthMethod: "oauth",
-			})
-		}
-
-		// Update default model
-		appCfg.Agents.Defaults.ModelName = "gemini-flash"
-
-		if err := config.SaveConfig(internal.GetConfigPath(), appCfg); err != nil {
-			fmt.Printf("Warning: could not update config: %v\n", err)
-		}
-	}
-
-	fmt.Println("\n✓ Google Antigravity login successful!")
-	fmt.Println("Default model set to: gemini-flash")
-	fmt.Println("Try it: picoclaw agent -m \"Hello world\"")
-
-	return nil
-}
-
-func authLoginAnthropic(useOauth bool) error {
-	if useOauth {
-		return authLoginAnthropicSetupToken()
-	}
-
-	fmt.Println("Anthropic login method:")
-	fmt.Println("  1) Setup token (from `claude setup-token`) (Recommended)")
-	fmt.Println("  2) API key (from console.anthropic.com)")
-
-	scanner := bufio.NewScanner(os.Stdin)
-	for {
-		fmt.Print("Choose [1]: ")
-		choice := "1"
-		if scanner.Scan() {
-			text := strings.TrimSpace(scanner.Text())
-			if text != "" {
-				choice = text
-			}
-		}
-
-		switch choice {
-		case "1":
-			return authLoginAnthropicSetupToken()
-		case "2":
-			return authLoginPasteToken("anthropic")
-		default:
-			fmt.Printf("Invalid choice: %s. Please enter 1 or 2.\n", choice)
-		}
-	}
-}
-
-func authLoginAnthropicSetupToken() error {
-	cred, err := auth.LoginSetupToken(os.Stdin)
-	if err != nil {
-		return fmt.Errorf("login failed: %w", err)
-	}
-
-	if err = auth.SetCredential("anthropic", cred); err != nil {
-		return fmt.Errorf("failed to save credentials: %w", err)
-	}
-
-	appCfg, err := internal.LoadConfig()
-	if err == nil {
-		found := false
-		for i := range appCfg.ModelList {
-			if isAnthropicModel(appCfg.ModelList[i].Model) {
-				appCfg.ModelList[i].AuthMethod = "oauth"
-				found = true
-				break
-			}
-		}
-		if !found {
-			appCfg.ModelList = append(appCfg.ModelList, &config.ModelConfig{
-				ModelName:  defaultAnthropicModel,
-				Model:      "anthropic/" + defaultAnthropicModel,
-				AuthMethod: "oauth",
-			})
-			// Only set default model if user has no default configured yet
-			if appCfg.Agents.Defaults.GetModelName() == "" {
-				appCfg.Agents.Defaults.ModelName = defaultAnthropicModel
-			}
-		}
-
-		if err := config.SaveConfig(internal.GetConfigPath(), appCfg); err != nil {
-			return fmt.Errorf("could not update config: %w", err)
-		}
-	}
-
-	fmt.Println("Setup token saved for Anthropic!")
-
-	return nil
-}
-
-func fetchGoogleUserEmail(accessToken string) (string, error) {
-	req, err := http.NewRequest("GET", "https://www.googleapis.com/oauth2/v2/userinfo", nil)
-	if err != nil {
-		return "", err
-	}
-	req.Header.Set("Authorization", "Bearer "+accessToken)
-
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("reading userinfo response: %w", err)
-	}
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("userinfo request failed: %s", string(body))
-	}
-
-	var userInfo struct {
-		Email string `json:"email"`
-	}
-	if err := json.Unmarshal(body, &userInfo); err != nil {
-		return "", err
-	}
-	return userInfo.Email, nil
-}
-
-func authLoginPasteToken(provider string) error {
-	cred, err := auth.LoginPasteToken(provider, os.Stdin)
-	if err != nil {
-		return fmt.Errorf("login failed: %w", err)
-	}
-
-	if err = auth.SetCredential(provider, cred); err != nil {
-		return fmt.Errorf("failed to save credentials: %w", err)
-	}
-
-	appCfg, err := internal.LoadConfig()
-	if err == nil {
-		switch provider {
-		case "anthropic":
-			// Update ModelList
-			found := false
-			for i := range appCfg.ModelList {
-				if isAnthropicModel(appCfg.ModelList[i].Model) {
-					appCfg.ModelList[i].AuthMethod = "token"
-					found = true
-					break
-				}
-			}
-			if !found {
-				appCfg.ModelList = append(appCfg.ModelList, &config.ModelConfig{
-					ModelName:  defaultAnthropicModel,
-					Model:      "anthropic/" + defaultAnthropicModel,
-					AuthMethod: "token",
-				})
-				appCfg.Agents.Defaults.ModelName = defaultAnthropicModel
-			}
-		case "openai":
-			// Update ModelList
-			found := false
-			for i := range appCfg.ModelList {
-				if isOpenAIModel(appCfg.ModelList[i].Model) {
-					appCfg.ModelList[i].AuthMethod = "token"
-					found = true
-					break
-				}
-			}
-			if !found {
-				appCfg.ModelList = append(appCfg.ModelList, &config.ModelConfig{
-					ModelName:  "gpt-5.4",
-					Model:      "openai/gpt-5.4",
-					AuthMethod: "token",
-				})
-			}
-			// Update default model
-			appCfg.Agents.Defaults.ModelName = "gpt-5.4"
-		}
-		if err := config.SaveConfig(internal.GetConfigPath(), appCfg); err != nil {
-			return fmt.Errorf("could not update config: %w", err)
-		}
-	}
-
-	fmt.Printf("Token saved for %s!\n", provider)
-
-	if appCfg != nil {
-		fmt.Printf("Default model set to: %s\n", appCfg.Agents.Defaults.GetModelName())
-	}
-
-	return nil
-}
-
 func authLogoutCmd(provider string) error {
 	if provider != "" {
 		if err := auth.DeleteCredential(provider); err != nil {
@@ -343,14 +93,6 @@ func authLogoutCmd(provider string) error {
 				switch provider {
 				case "openai":
 					if isOpenAIModel(appCfg.ModelList[i].Model) {
-						appCfg.ModelList[i].AuthMethod = ""
-					}
-				case "anthropic":
-					if isAnthropicModel(appCfg.ModelList[i].Model) {
-						appCfg.ModelList[i].AuthMethod = ""
-					}
-				case "google-antigravity", "antigravity":
-					if isAntigravityModel(appCfg.ModelList[i].Model) {
 						appCfg.ModelList[i].AuthMethod = ""
 					}
 				}
@@ -409,97 +151,16 @@ func authStatusCmd() error {
 		if cred.AccountID != "" {
 			fmt.Printf("    Account: %s\n", cred.AccountID)
 		}
-		if cred.Email != "" {
-			fmt.Printf("    Email: %s\n", cred.Email)
-		}
-		if cred.ProjectID != "" {
-			fmt.Printf("    Project: %s\n", cred.ProjectID)
-		}
 		if !cred.ExpiresAt.IsZero() {
 			fmt.Printf("    Expires: %s\n", cred.ExpiresAt.Format("2006-01-02 15:04"))
 		}
-
-		if provider == "anthropic" && cred.AuthMethod == "oauth" {
-			usage, err := auth.FetchAnthropicUsage(cred.AccessToken)
-			if err != nil {
-				fmt.Printf("    Usage: unavailable (%v)\n", err)
-			} else {
-				fmt.Printf("    Usage (5h):  %.1f%%\n", usage.FiveHourUtilization*100)
-				fmt.Printf("    Usage (7d):  %.1f%%\n", usage.SevenDayUtilization*100)
-			}
-		}
 	}
 
 	return nil
-}
-
-func authModelsCmd() error {
-	cred, err := auth.GetCredential("google-antigravity")
-	if err != nil || cred == nil {
-		return fmt.Errorf(
-			"not logged in to Google Antigravity.\nrun: picoclaw auth login --provider google-antigravity",
-		)
-	}
-
-	// Refresh token if needed
-	if cred.NeedsRefresh() && cred.RefreshToken != "" {
-		oauthCfg := auth.GoogleAntigravityOAuthConfig()
-		refreshed, refreshErr := auth.RefreshAccessToken(cred, oauthCfg)
-		if refreshErr == nil {
-			cred = refreshed
-			_ = auth.SetCredential("google-antigravity", cred)
-		}
-	}
-
-	projectID := cred.ProjectID
-	if projectID == "" {
-		return fmt.Errorf("no project id stored. Try logging in again")
-	}
-
-	fmt.Printf("Fetching models for project: %s\n\n", projectID)
-
-	models, err := providers.FetchAntigravityModels(cred.AccessToken, projectID)
-	if err != nil {
-		return fmt.Errorf("error fetching models: %w", err)
-	}
-
-	if len(models) == 0 {
-		return fmt.Errorf("no models available")
-	}
-
-	fmt.Println("Available Antigravity Models:")
-	fmt.Println("-----------------------------")
-	for _, m := range models {
-		status := "✓"
-		if m.IsExhausted {
-			status = "✗ (quota exhausted)"
-		}
-		name := m.ID
-		if m.DisplayName != "" {
-			name = fmt.Sprintf("%s (%s)", m.ID, m.DisplayName)
-		}
-		fmt.Printf("  %s %s\n", status, name)
-	}
-
-	return nil
-}
-
-// isAntigravityModel checks if a model string belongs to antigravity provider
-func isAntigravityModel(model string) bool {
-	return model == "antigravity" ||
-		model == "google-antigravity" ||
-		strings.HasPrefix(model, "antigravity/") ||
-		strings.HasPrefix(model, "google-antigravity/")
 }
 
 // isOpenAIModel checks if a model string belongs to openai provider
 func isOpenAIModel(model string) bool {
 	return model == "openai" ||
 		strings.HasPrefix(model, "openai/")
-}
-
-// isAnthropicModel checks if a model string belongs to anthropic provider
-func isAnthropicModel(model string) bool {
-	return model == "anthropic" ||
-		strings.HasPrefix(model, "anthropic/")
 }

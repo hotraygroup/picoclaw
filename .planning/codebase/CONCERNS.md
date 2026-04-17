@@ -154,7 +154,7 @@
 - Test coverage: Has tests but edge cases (concurrent cooldown, rate limit overflow) need coverage
 
 **Config Version Migration:**
-- Files: `pkg/config/config.go:25-26`, `pkg/config/migration_integration_test.go`, `pkg/migrate/`
+- Files: `pkg/config/config.go:25-26`, `pkg/config/migration_integration_test.go`, `pkg/config/migration.go`
 - Why fragile: Config versioning (v0 → v3) requires careful migration for existing users
 - Safe modification: Add migration tests for each version; preserve backward compatibility
 - Test coverage: Integration tests exist; edge cases (partial migration, corrupted config) need attention

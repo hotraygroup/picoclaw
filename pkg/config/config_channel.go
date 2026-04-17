@@ -14,25 +14,8 @@ import (
 
 // Channel type constants — single source of truth for all channel type names.
 const (
-	ChannelPico           = "pico"
-	ChannelPicoClient     = "pico_client"
-	ChannelTelegram       = "telegram"
-	ChannelDiscord        = "discord"
-	ChannelFeishu         = "feishu"
-	ChannelWeixin         = "weixin"
-	ChannelWeCom          = "wecom"
-	ChannelDingTalk       = "dingtalk"
-	ChannelSlack          = "slack"
-	ChannelMatrix         = "matrix"
-	ChannelLINE           = "line"
-	ChannelOneBot         = "onebot"
-	ChannelQQ             = "qq"
-	ChannelIRC            = "irc"
-	ChannelVK             = "vk"
-	ChannelMaixCam        = "maixcam"
-	ChannelWhatsApp       = "whatsapp"
-	ChannelWhatsAppNative = "whatsapp_native"
-	ChannelTeamsWebHook   = "teams_webhook"
+	ChannelPico       = "pico"
+	ChannelPicoClient = "pico_client"
 )
 
 func initChannel() {
@@ -621,25 +604,8 @@ func filterSecureFields(r RawNode, secureFields map[string]struct{}) RawNode {
 // corresponding Settings struct. InitChannelList uses reflect.New to create
 // fresh instances, avoiding repeated closure boilerplate.
 var channelSettingsFactory = map[string]any{
-	ChannelPico:           (PicoSettings{}),
-	ChannelPicoClient:     (PicoClientSettings{}),
-	ChannelTelegram:       (TelegramSettings{}),
-	ChannelDiscord:        (DiscordSettings{}),
-	ChannelFeishu:         (FeishuSettings{}),
-	ChannelWeixin:         (WeixinSettings{}),
-	ChannelWeCom:          (WeComSettings{}),
-	ChannelDingTalk:       (DingTalkSettings{}),
-	ChannelSlack:          (SlackSettings{}),
-	ChannelMatrix:         (MatrixSettings{}),
-	ChannelLINE:           (LINESettings{}),
-	ChannelOneBot:         (OneBotSettings{}),
-	ChannelQQ:             (QQSettings{}),
-	ChannelIRC:            (IRCSettings{}),
-	ChannelVK:             (VKSettings{}),
-	ChannelMaixCam:        (MaixCamSettings{}),
-	ChannelWhatsApp:       (WhatsAppSettings{}),
-	ChannelWhatsAppNative: (WhatsAppSettings{}),
-	ChannelTeamsWebHook:   (TeamsWebhookSettings{}),
+	ChannelPico:       (PicoSettings{}),
+	ChannelPicoClient: (PicoClientSettings{}),
 }
 
 // newChannelSettings creates a fresh zero-value pointer for the given channel type.
@@ -681,7 +647,9 @@ func InitChannelList(channels ChannelsConfig) error {
 			bc.Type = name
 		}
 		if !isValidChannelType(bc.Type) {
-			return fmt.Errorf("channel %q has unknown type %q", name, bc.Type)
+			logger.Warnf("channel %q has unknown type %q, ignoring", name, bc.Type)
+			delete(channels, name)
+			continue
 		}
 		// Decode into the correct typed settings
 		if target := newChannelSettings(bc.Type); target != nil {
