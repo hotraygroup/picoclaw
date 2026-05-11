@@ -2996,7 +2996,7 @@ func TestProcessMessage_ModelRoutingUsesLightProvider(t *testing.T) {
 		Agents: config.AgentsConfig{
 			Defaults: config.AgentDefaults{
 				Workspace:         tmpDir,
-				ModelName:         "gemini-main",
+				ModelName:         "openai-main",
 				MaxTokens:         4096,
 				MaxToolIterations: 10,
 				Routing: &config.RoutingConfig{
@@ -3008,8 +3008,8 @@ func TestProcessMessage_ModelRoutingUsesLightProvider(t *testing.T) {
 		},
 		ModelList: []*config.ModelConfig{
 			{
-				ModelName: "gemini-main",
-				Model:     "gemini/gemini-2.5-flash",
+				ModelName: "openai-main",
+				Model:     "openai/gpt-4o",
 				APIBase:   heavyServer.URL,
 				APIKeys:   config.SimpleSecureStrings("heavy-key"),
 			},

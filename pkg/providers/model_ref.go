@@ -38,34 +38,16 @@ func NormalizeProvider(provider string) string {
 		return "opencode"
 	case "qwen":
 		return "qwen-portal"
-	case "kimi-code":
-		return "kimi-coding"
 	case "gpt":
 		return "openai"
-	case "claude":
-		return "anthropic"
 	case "glm":
 		return "zhipu"
-	case "google":
-		return "gemini"
-	case "google-antigravity":
-		return "antigravity"
 	case "alibaba-coding", "qwen-coding":
 		return "coding-plan"
-	case "alibaba-coding-anthropic":
-		return "coding-plan-anthropic"
 	case "qwen-international", "dashscope-intl":
 		return "qwen-intl"
 	case "dashscope-us":
 		return "qwen-us"
-	case "azure-openai":
-		return "azure"
-	case "claudecli":
-		return "claude-cli"
-	case "codexcli":
-		return "codex-cli"
-	case "copilot":
-		return "github-copilot"
 	}
 
 	return p

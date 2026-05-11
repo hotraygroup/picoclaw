@@ -21,45 +21,16 @@ func TestDetectTranscriber(t *testing.T) {
 		{
 			name: "voice model name selects audio model transcriber",
 			cfg: &config.Config{
-				Voice: config.VoiceConfig{ModelName: "voice-gemini"},
+				Voice: config.VoiceConfig{ModelName: "voice-test"},
 				ModelList: []*config.ModelConfig{
 					{
-						ModelName: "voice-gemini",
-						Model:     "gemini/gemini-2.5-flash",
-						APIKeys:   config.SimpleSecureStrings("sk-gemini-model"),
+						ModelName: "voice-test",
+						Model:     "openai/gpt-4o-audio-preview",
+						APIKeys:   config.SimpleSecureStrings("sk-openai-model"),
 					},
 				},
 			},
 			wantName: "audio-model",
-		},
-		{
-			name: "voice model name alias selects elevenlabs transcriber",
-			cfg: &config.Config{
-				Voice: config.VoiceConfig{ModelName: "my-asr-model"},
-				ModelList: []*config.ModelConfig{
-					{
-						ModelName: "my-asr-model",
-						Model:     "elevenlabs/scribe_v1",
-						APIKeys:   config.SimpleSecureStrings("sk_elevenlabs_test"),
-					},
-				},
-			},
-			wantName: "elevenlabs",
-		},
-		{
-			name: "explicit elevenlabs provider selects elevenlabs transcriber",
-			cfg: &config.Config{
-				Voice: config.VoiceConfig{ModelName: "my-asr-model"},
-				ModelList: []*config.ModelConfig{
-					{
-						ModelName: "my-asr-model",
-						Provider:  "elevenlabs",
-						Model:     "scribe_v1",
-						APIKeys:   config.SimpleSecureStrings("sk_elevenlabs_test"),
-					},
-				},
-			},
-			wantName: "elevenlabs",
 		},
 		{
 			name: "voice model name alias selects whisper transcriber for groq",
@@ -104,48 +75,6 @@ func TestDetectTranscriber(t *testing.T) {
 			wantName: "whisper",
 		},
 		{
-			name: "voice model name alias selects non-gemini audio model transcriber",
-			cfg: &config.Config{
-				Voice: config.VoiceConfig{ModelName: "my-asr-model"},
-				ModelList: []*config.ModelConfig{
-					{
-						ModelName: "my-asr-model",
-						Model:     "openai/gpt-4o-audio-preview",
-						APIKeys:   config.SimpleSecureStrings("sk-openai"),
-					},
-				},
-			},
-			wantName: "audio-model",
-		},
-		{
-			name: "voice model name selects azure audio model transcriber",
-			cfg: &config.Config{
-				Voice: config.VoiceConfig{ModelName: "voice-azure-audio"},
-				ModelList: []*config.ModelConfig{
-					{
-						ModelName: "voice-azure-audio",
-						Model:     "azure/my-audio-deployment", APIKeys: config.SimpleSecureStrings("sk-azure"),
-						APIBase: "https://example.openai.azure.com",
-					},
-				},
-			},
-			wantName: "audio-model",
-		},
-		{
-			name: "voice model name with non openai compatible protocol does not select audio model transcriber",
-			cfg: &config.Config{
-				Voice: config.VoiceConfig{ModelName: "voice-anthropic"},
-				ModelList: []*config.ModelConfig{
-					{
-						ModelName: "voice-anthropic",
-						Model:     "anthropic/claude-sonnet-4.6",
-						APIKeys:   config.SimpleSecureStrings("sk-anthropic"),
-					},
-				},
-			},
-			wantNil: true,
-		},
-		{
 			name: "groq model list entry without key is skipped",
 			cfg: &config.Config{
 				ModelList: []*config.ModelConfig{
@@ -174,52 +103,12 @@ func TestDetectTranscriber(t *testing.T) {
 				ModelList: []*config.ModelConfig{
 					{
 						ModelName: "other",
-						Model:     "gemini/gemini-2.5-flash",
+						Model:     "openai/gpt-4o",
 						APIKeys:   config.SimpleSecureStrings("sk-other-model"),
 					},
 				},
 			},
 			wantNil: true,
-		},
-		{
-			name: "elevenlabs voice config key",
-			cfg: &config.Config{
-				ModelList: []*config.ModelConfig{
-					{Model: "elevenlabs/scribe_v1", APIKeys: config.SimpleSecureStrings("sk_elevenlabs_test")},
-				},
-			},
-			wantName: "elevenlabs",
-		},
-		{
-			name: "elevenlabs takes priority over groq model list",
-			cfg: &config.Config{
-				ModelList: []*config.ModelConfig{
-					{Model: "elevenlabs/scribe_v1", APIKeys: config.SimpleSecureStrings("sk_elevenlabs_test")},
-					{
-						ModelName: "groq",
-						Model:     "groq/llama-3.3-70b",
-						APIKeys:   config.SimpleSecureStrings("sk-groq-model"),
-					},
-				},
-			},
-			wantName: "elevenlabs",
-		},
-		{
-			name: "voice model name takes priority over elevenlabs",
-			cfg: &config.Config{
-				Voice: config.VoiceConfig{
-					ModelName: "voice-gemini",
-				},
-				ModelList: []*config.ModelConfig{
-					{Model: "elevenlabs", APIKeys: config.SimpleSecureStrings("sk_elevenlabs_test")},
-					{
-						ModelName: "voice-gemini",
-						Model:     "gemini/gemini-2.5-flash",
-						APIKeys:   config.SimpleSecureStrings("sk-gemini-model"),
-					},
-				},
-			},
-			wantName: "audio-model",
 		},
 	}
 

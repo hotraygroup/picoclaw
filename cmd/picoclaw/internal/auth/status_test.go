@@ -6,7 +6,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
@@ -58,18 +57,18 @@ func TestNewStatusSubcommand(t *testing.T) {
 	assert.False(t, cmd.HasFlags())
 }
 
-func TestAuthStatusCmdShowsCanonicalGoogleAntigravityAfterLegacyRefresh(t *testing.T) {
+func TestAuthStatusCmdShowsOpenAI(t *testing.T) {
 	tmpDir := setAuthStatusTestHome(t)
 
 	legacyExpiry := time.Date(2026, 4, 16, 10, 0, 0, 0, time.UTC)
 	legacyStore := map[string]any{
 		"credentials": map[string]any{
-			"antigravity": map[string]any{
+			"openai": map[string]any{
 				"access_token": "legacy-token",
 				"expires_at":   legacyExpiry.Format(time.RFC3339),
-				"provider":     "antigravity",
+				"provider":     "openai",
 				"auth_method":  "oauth",
-				"project_id":   "legacy-project",
+				"account_id":   "test-account",
 			},
 		},
 	}
@@ -81,12 +80,12 @@ func TestAuthStatusCmdShowsCanonicalGoogleAntigravityAfterLegacyRefresh(t *testi
 	require.NoError(t, os.WriteFile(authPath, data, 0o600))
 
 	refreshedExpiry := time.Date(2026, 4, 16, 12, 30, 0, 0, time.UTC)
-	err = pkgauth.SetCredential("google-antigravity", &pkgauth.AuthCredential{
+	err = pkgauth.SetCredential("openai", &pkgauth.AuthCredential{
 		AccessToken: "fresh-token",
 		ExpiresAt:   refreshedExpiry,
-		Provider:    "google-antigravity",
+		Provider:    "openai",
 		AuthMethod:  "oauth",
-		ProjectID:   "fresh-project",
+		AccountID:   "fresh-account",
 	})
 	require.NoError(t, err)
 
@@ -95,9 +94,8 @@ func TestAuthStatusCmdShowsCanonicalGoogleAntigravityAfterLegacyRefresh(t *testi
 	})
 
 	assert.Contains(t, output, "\nAuthenticated Providers:")
-	assert.Contains(t, output, "\n  google-antigravity:\n")
-	assert.NotContains(t, output, "\n  antigravity:\n")
-	assert.Contains(t, output, "    Project: fresh-project")
+	assert.Contains(t, output, "\n  openai:\n")
+	assert.Contains(t, output, "    Method: oauth")
+	assert.Contains(t, output, "    Account: fresh-account")
 	assert.Contains(t, output, "    Expires: 2026-04-16 12:30")
-	assert.Equal(t, 1, strings.Count(output, ":\n    Method: oauth"))
 }

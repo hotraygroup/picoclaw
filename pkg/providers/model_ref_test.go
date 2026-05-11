@@ -3,15 +3,15 @@ package providers
 import "testing"
 
 func TestParseModelRef_WithSlash(t *testing.T) {
-	ref := ParseModelRef("anthropic/claude-opus", "openai")
+	ref := ParseModelRef("openrouter/auto", "openai")
 	if ref == nil {
 		t.Fatal("expected non-nil ref")
 	}
-	if ref.Provider != "anthropic" {
-		t.Errorf("provider = %q, want anthropic", ref.Provider)
+	if ref.Provider != "openrouter" {
+		t.Errorf("provider = %q, want openrouter", ref.Provider)
 	}
-	if ref.Model != "claude-opus" {
-		t.Errorf("model = %q, want claude-opus", ref.Model)
+	if ref.Model != "auto" {
+		t.Errorf("model = %q, want auto", ref.Model)
 	}
 }
 
@@ -43,15 +43,15 @@ func TestParseModelRef_EmptyModelAfterSlash(t *testing.T) {
 }
 
 func TestParseModelRef_WhitespaceHandling(t *testing.T) {
-	ref := ParseModelRef("  anthropic / claude-opus  ", "openai")
+	ref := ParseModelRef("  openrouter / auto  ", "openai")
 	if ref == nil {
 		t.Fatal("expected non-nil ref")
 	}
-	if ref.Provider != "anthropic" {
-		t.Errorf("provider = %q, want anthropic", ref.Provider)
+	if ref.Provider != "openrouter" {
+		t.Errorf("provider = %q, want openrouter", ref.Provider)
 	}
-	if ref.Model != "claude-opus" {
-		t.Errorf("model = %q, want claude-opus", ref.Model)
+	if ref.Model != "auto" {
+		t.Errorf("model = %q, want auto", ref.Model)
 	}
 }
 
@@ -61,28 +61,16 @@ func TestNormalizeProvider(t *testing.T) {
 		want  string
 	}{
 		{"OpenAI", "openai"},
-		{"ANTHROPIC", "anthropic"},
 		{"z.ai", "zai"},
 		{"z-ai", "zai"},
 		{"Z.AI", "zai"},
 		{"opencode-zen", "opencode"},
 		{"qwen", "qwen-portal"},
-		{"kimi-code", "kimi-coding"},
 		{"gpt", "openai"},
-		{"claude", "anthropic"},
 		{"glm", "zhipu"},
-		{"google", "gemini"},
-		{"google-antigravity", "antigravity"},
 		{"groq", "groq"},
-		{"azure-openai", "azure"},
-		{"claudecli", "claude-cli"},
-		{"codexcli", "codex-cli"},
-		{"copilot", "github-copilot"},
-		// Alibaba Coding Plan aliases
 		{"alibaba-coding", "coding-plan"},
 		{"qwen-coding", "coding-plan"},
-		{"alibaba-coding-anthropic", "coding-plan-anthropic"},
-		// Qwen international aliases
 		{"qwen-international", "qwen-intl"},
 		{"dashscope-intl", "qwen-intl"},
 		{"dashscope-us", "qwen-us"},
@@ -104,8 +92,6 @@ func TestModelKey(t *testing.T) {
 		want     string
 	}{
 		{"openai", "gpt-4", "openai/gpt-4"},
-		{"Anthropic", "Claude-Opus", "anthropic/claude-opus"},
-		{"claude", "sonnet", "anthropic/sonnet"},
 		{"z.ai", "Model-X", "zai/model-x"},
 	}
 
@@ -160,18 +146,5 @@ func TestParseModelRef_UnknownPrefixPreservesEmptyDefaultProvider(t *testing.T) 
 	}
 	if ref.Model != "meta-llama/Llama-3.1-8B-Instruct" {
 		t.Fatalf("model = %q, want full original model ID", ref.Model)
-	}
-}
-
-func TestParseModelRef_KnownNonSelectableProvider(t *testing.T) {
-	ref := ParseModelRef("bedrock/us.anthropic.claude-sonnet-4-20250514-v1:0", "openai")
-	if ref == nil {
-		t.Fatal("expected non-nil ref")
-	}
-	if ref.Provider != "bedrock" {
-		t.Fatalf("provider = %q, want bedrock", ref.Provider)
-	}
-	if ref.Model != "us.anthropic.claude-sonnet-4-20250514-v1:0" {
-		t.Fatalf("model = %q, want preserved bedrock model ID", ref.Model)
 	}
 }

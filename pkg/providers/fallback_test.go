@@ -40,7 +40,7 @@ func TestFallback_SecondCandidateSuccess(t *testing.T) {
 
 	candidates := []FallbackCandidate{
 		makeCandidate("openai", "gpt-4"),
-		makeCandidate("anthropic", "claude-opus"),
+		makeCandidate("groq", "llama-opus"),
 	}
 
 	attempt := 0
@@ -49,18 +49,18 @@ func TestFallback_SecondCandidateSuccess(t *testing.T) {
 		if attempt == 1 {
 			return nil, errors.New("rate limit exceeded")
 		}
-		return &LLMResponse{Content: "from claude", FinishReason: "stop"}, nil
+		return &LLMResponse{Content: "from llama", FinishReason: "stop"}, nil
 	}
 
 	result, err := fc.Execute(context.Background(), candidates, run)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if result.Provider != "anthropic" {
-		t.Errorf("provider = %q, want anthropic", result.Provider)
+	if result.Provider != "groq" {
+		t.Errorf("provider = %q, want groq", result.Provider)
 	}
-	if result.Response.Content != "from claude" {
-		t.Errorf("content = %q, want 'from claude'", result.Response.Content)
+	if result.Response.Content != "from llama" {
+		t.Errorf("content = %q, want 'from llama'", result.Response.Content)
 	}
 	if len(result.Attempts) != 1 {
 		t.Errorf("attempts = %d, want 1 (failed attempt recorded)", len(result.Attempts))
@@ -73,7 +73,7 @@ func TestFallback_AllFail(t *testing.T) {
 
 	candidates := []FallbackCandidate{
 		makeCandidate("openai", "gpt-4"),
-		makeCandidate("anthropic", "claude"),
+		makeCandidate("groq", "llama"),
 		makeCandidate("groq", "llama"),
 	}
 
@@ -101,7 +101,7 @@ func TestFallback_ContextCanceled(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	candidates := []FallbackCandidate{
 		makeCandidate("openai", "gpt-4"),
-		makeCandidate("anthropic", "claude"),
+		makeCandidate("groq", "llama"),
 	}
 
 	attempt := 0
@@ -127,7 +127,7 @@ func TestFallback_NonRetriableError(t *testing.T) {
 
 	candidates := []FallbackCandidate{
 		makeCandidate("openai", "gpt-4"),
-		makeCandidate("anthropic", "claude"),
+		makeCandidate("groq", "llama"),
 	}
 
 	attempt := 0
@@ -162,22 +162,22 @@ func TestFallback_CooldownSkip(t *testing.T) {
 
 	candidates := []FallbackCandidate{
 		makeCandidate("openai", "gpt-4"),
-		makeCandidate("anthropic", "claude"),
+		makeCandidate("groq", "llama"),
 	}
 
 	run := func(ctx context.Context, provider, model string) (*LLMResponse, error) {
 		if provider == "openai" {
 			t.Error("should not call openai (in cooldown)")
 		}
-		return &LLMResponse{Content: "claude response", FinishReason: "stop"}, nil
+		return &LLMResponse{Content: "llama response", FinishReason: "stop"}, nil
 	}
 
 	result, err := fc.Execute(context.Background(), candidates, run)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if result.Provider != "anthropic" {
-		t.Errorf("provider = %q, want anthropic", result.Provider)
+	if result.Provider != "groq" {
+		t.Errorf("provider = %q, want groq", result.Provider)
 	}
 	// Should have 1 skipped attempt
 	skipped := 0
@@ -197,11 +197,11 @@ func TestFallback_AllInCooldown(t *testing.T) {
 
 	// Put all models in cooldown (using ModelKey now)
 	ct.MarkFailure(ModelKey("openai", "gpt-4"), FailoverRateLimit)
-	ct.MarkFailure(ModelKey("anthropic", "claude"), FailoverBilling)
+	ct.MarkFailure(ModelKey("groq", "llama"), FailoverBilling)
 
 	candidates := []FallbackCandidate{
 		makeCandidate("openai", "gpt-4"),
-		makeCandidate("anthropic", "claude"),
+		makeCandidate("groq", "llama"),
 	}
 
 	_, err := fc.Execute(context.Background(), candidates,
@@ -250,7 +250,7 @@ func TestFallback_UnclassifiedError(t *testing.T) {
 
 	candidates := []FallbackCandidate{
 		makeCandidate("openai", "gpt-4"),
-		makeCandidate("anthropic", "claude"),
+		makeCandidate("groq", "llama"),
 	}
 
 	attempt := 0
@@ -283,7 +283,7 @@ func assertFallbackErrorFallsBack(
 
 	candidates := []FallbackCandidate{
 		makeCandidate(primaryProvider, primaryModel),
-		makeCandidate("anthropic", "claude"),
+		makeCandidate("groq", "llama"),
 	}
 
 	attempt := 0
@@ -302,8 +302,8 @@ func assertFallbackErrorFallsBack(
 	if attempt != 2 {
 		t.Fatalf("attempt = %d, want 2", attempt)
 	}
-	if result.Provider != "anthropic" || result.Model != "claude" {
-		t.Fatalf("result = %s/%s, want anthropic/claude", result.Provider, result.Model)
+	if result.Provider != "groq" || result.Model != "llama" {
+		t.Fatalf("result = %s/%s, want groq/llama", result.Provider, result.Model)
 	}
 	if len(result.Attempts) != 1 {
 		t.Fatalf("attempts = %d, want 1 failed attempt recorded", len(result.Attempts))
@@ -415,8 +415,8 @@ func TestFallback_LocalRateLimitSkipsToHealthyFallback(t *testing.T) {
 		t,
 		"model_name:primary",
 		"model_name:fallback",
-		"anthropic",
-		"claude",
+		"groq",
+		"llama",
 		func(
 			ctx context.Context,
 			fc *FallbackChain,
@@ -451,7 +451,7 @@ func TestImageFallback_DimensionError(t *testing.T) {
 
 	candidates := []FallbackCandidate{
 		makeCandidate("openai", "gpt-4o"),
-		makeCandidate("anthropic", "claude"),
+		makeCandidate("groq", "llama"),
 	}
 
 	attempt := 0
@@ -475,7 +475,7 @@ func TestImageFallback_SizeError(t *testing.T) {
 
 	candidates := []FallbackCandidate{
 		makeCandidate("openai", "gpt-4o"),
-		makeCandidate("anthropic", "claude"),
+		makeCandidate("groq", "llama"),
 	}
 
 	attempt := 0
@@ -499,7 +499,7 @@ func TestImageFallback_RetryOnOtherErrors(t *testing.T) {
 
 	candidates := []FallbackCandidate{
 		makeCandidate("openai", "gpt-4o"),
-		makeCandidate("anthropic", "claude-sonnet"),
+		makeCandidate("groq", "llama-sonnet"),
 	}
 
 	attempt := 0
@@ -515,8 +515,8 @@ func TestImageFallback_RetryOnOtherErrors(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if result.Provider != "anthropic" {
-		t.Errorf("provider = %q, want anthropic", result.Provider)
+	if result.Provider != "groq" {
+		t.Errorf("provider = %q, want groq", result.Provider)
 	}
 }
 
@@ -525,8 +525,8 @@ func TestImageFallback_LocalRateLimitSkipsToHealthyFallback(t *testing.T) {
 		t,
 		"model_name:primary-image",
 		"model_name:fallback-image",
-		"anthropic",
-		"claude-sonnet",
+		"groq",
+		"llama-sonnet",
 		func(
 			ctx context.Context,
 			fc *FallbackChain,
@@ -554,7 +554,7 @@ func TestImageFallback_NoCandidates(t *testing.T) {
 func TestResolveCandidates_Simple(t *testing.T) {
 	cfg := ModelConfig{
 		Primary:   "gpt-4",
-		Fallbacks: []string{"anthropic/claude-opus", "groq/llama-3"},
+		Fallbacks: []string{"groq/llama-opus", "groq/llama-3"},
 	}
 
 	candidates := ResolveCandidates(cfg, "openai")
@@ -565,8 +565,8 @@ func TestResolveCandidates_Simple(t *testing.T) {
 	if candidates[0].Provider != "openai" || candidates[0].Model != "gpt-4" {
 		t.Errorf("candidate[0] = %s/%s, want openai/gpt-4", candidates[0].Provider, candidates[0].Model)
 	}
-	if candidates[1].Provider != "anthropic" || candidates[1].Model != "claude-opus" {
-		t.Errorf("candidate[1] = %s/%s, want anthropic/claude-opus", candidates[1].Provider, candidates[1].Model)
+	if candidates[1].Provider != "groq" || candidates[1].Model != "llama-opus" {
+		t.Errorf("candidate[1] = %s/%s, want groq/llama-opus", candidates[1].Provider, candidates[1].Model)
 	}
 	if candidates[2].Provider != "groq" || candidates[2].Model != "llama-3" {
 		t.Errorf("candidate[2] = %s/%s, want groq/llama-3", candidates[2].Provider, candidates[2].Model)
@@ -576,7 +576,7 @@ func TestResolveCandidates_Simple(t *testing.T) {
 func TestResolveCandidates_Deduplication(t *testing.T) {
 	cfg := ModelConfig{
 		Primary:   "openai/gpt-4",
-		Fallbacks: []string{"openai/gpt-4", "anthropic/claude"},
+		Fallbacks: []string{"openai/gpt-4", "groq/llama"},
 	}
 
 	candidates := ResolveCandidates(cfg, "default")
@@ -600,7 +600,7 @@ func TestResolveCandidates_EmptyFallbacks(t *testing.T) {
 func TestResolveCandidates_EmptyPrimary(t *testing.T) {
 	cfg := ModelConfig{
 		Primary:   "",
-		Fallbacks: []string{"anthropic/claude"},
+		Fallbacks: []string{"groq/llama"},
 	}
 
 	candidates := ResolveCandidates(cfg, "openai")
@@ -688,7 +688,7 @@ func TestFallbackExhaustedError_Message(t *testing.T) {
 				Reason:   FailoverRateLimit,
 				Duration: 500 * time.Millisecond,
 			},
-			{Provider: "anthropic", Model: "claude", Skipped: true},
+			{Provider: "groq", Model: "llama", Skipped: true},
 		},
 	}
 	msg := e.Error()

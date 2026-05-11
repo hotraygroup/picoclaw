@@ -410,15 +410,15 @@ func TestPopulateCandidateProviders_ResolvesProtocolPrefix(t *testing.T) {
 		ModelList: []*config.ModelConfig{
 			{
 				ModelName: "gemma",
-				Model:     "gemini/gemma-3-27b-it",
-				APIKeys:   config.SimpleSecureStrings("gemini-test-key"),
+				Model:     "openai/gemma-3-27b-it",
+				APIKeys:   config.SimpleSecureStrings("openai-test-key"),
 				Workspace: workspace,
 			},
 		},
 	}
 	populateCandidateProvidersFromNames(cfg, workspace, []string{"gemma"}, out)
 
-	key := providers.ModelKey("gemini", "gemma-3-27b-it")
+	key := providers.ModelKey("openai", "gemma-3-27b-it")
 	if out[key] == nil {
 		t.Fatalf("expected CandidateProviders[%q] to be populated for protocol-prefixed model", key)
 	}
@@ -479,7 +479,7 @@ func TestNewAgentInstance_CandidateProvidersPopulatedForCrossProviderFallbacks(t
 			Defaults: config.AgentDefaults{
 				Workspace:      workspace,
 				ModelName:      "mistral-small-3.1",
-				ModelFallbacks: []string{"gemma-3-27b", "gemini-images"},
+				ModelFallbacks: []string{"gemma-3-27b", "groq-fallback"},
 			},
 		},
 		ModelList: []*config.ModelConfig{
@@ -492,14 +492,14 @@ func TestNewAgentInstance_CandidateProvidersPopulatedForCrossProviderFallbacks(t
 			},
 			{
 				ModelName: "gemma-3-27b",
-				Model:     "gemini/gemma-3-27b-it",
-				APIKeys:   config.SimpleSecureStrings("AIzaSy-test"),
+				Model:     "openai/gemma-3-27b-it",
+				APIKeys:   config.SimpleSecureStrings("sk-openai-test"),
 				Workspace: workspace,
 			},
 			{
-				ModelName: "gemini-images",
-				Model:     "gemini/gemini-2.5-flash-lite",
-				APIKeys:   config.SimpleSecureStrings("AIzaSy-test"),
+				ModelName: "groq-fallback",
+				Model:     "groq/llama-3.3-70b",
+				APIKeys:   config.SimpleSecureStrings("gsk-test"),
 				Workspace: workspace,
 			},
 		},
@@ -508,10 +508,9 @@ func TestNewAgentInstance_CandidateProvidersPopulatedForCrossProviderFallbacks(t
 	primaryProvider := &mockProvider{}
 	agent := NewAgentInstance(nil, &cfg.Agents.Defaults, cfg, primaryProvider)
 
-	// Only fallback models need entries — the primary uses the injected provider directly.
 	wantKeys := []string{
-		providers.ModelKey("gemini", "gemma-3-27b-it"),
-		providers.ModelKey("gemini", "gemini-2.5-flash-lite"),
+		providers.ModelKey("openai", "gemma-3-27b-it"),
+		providers.ModelKey("groq", "llama-3.3-70b"),
 	}
 
 	for _, key := range wantKeys {
@@ -523,7 +522,6 @@ func TestNewAgentInstance_CandidateProvidersPopulatedForCrossProviderFallbacks(t
 		if p == nil {
 			t.Errorf("CandidateProviders[%q] is nil", key)
 		}
-		// Each fallback must use its own provider, not the injected primary.
 		if p == primaryProvider {
 			t.Errorf(
 				"CandidateProviders[%q] is the same instance as the primary provider; fallback would inherit primary credentials",
@@ -688,8 +686,8 @@ model: claude-frontmatter
 		ModelList: []*config.ModelConfig{
 			{
 				ModelName: "claude-frontmatter",
-				Model:     "anthropic/claude-3-7-sonnet",
-				APIKeys:   config.SimpleSecureStrings("test-anthropic-key"),
+				Model:     "openrouter/anthropic/claude-3-7-sonnet",
+				APIKeys:   config.SimpleSecureStrings("test-openrouter-key"),
 				Workspace: workspace,
 			},
 		},
@@ -707,11 +705,11 @@ model: claude-frontmatter
 	if len(agent.Candidates) != 1 {
 		t.Fatalf("len(agent.Candidates) = %d, want 1", len(agent.Candidates))
 	}
-	if got := agent.Candidates[0].Provider; got != "anthropic" {
-		t.Fatalf("primary candidate provider = %q, want %q", got, "anthropic")
+	if got := agent.Candidates[0].Provider; got != "openrouter" {
+		t.Fatalf("primary candidate provider = %q, want %q", got, "openrouter")
 	}
-	if got := agent.Candidates[0].Model; got != "claude-3-7-sonnet" {
-		t.Fatalf("primary candidate model = %q, want %q", got, "claude-3-7-sonnet")
+	if got := agent.Candidates[0].Model; got != "anthropic/claude-3-7-sonnet" {
+		t.Fatalf("primary candidate model = %q, want %q", got, "anthropic/claude-3-7-sonnet")
 	}
 	if agent.Provider == defaultProvider {
 		t.Fatal("expected primary provider to be resolved from model_list instead of using injected default provider")

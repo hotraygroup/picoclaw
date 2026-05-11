@@ -61,14 +61,6 @@ func DefaultConfig() *Config {
 			// Add your API key to the model you want to use
 			// ============================================
 
-			// Zhipu AI (智谱) - https://open.bigmodel.cn/usercenter/apikeys
-			{
-				ModelName: "glm-4.7",
-				Provider:  "zhipu",
-				Model:     "glm-4.7",
-				APIBase:   "https://open.bigmodel.cn/api/paas/v4",
-			},
-
 			// OpenAI - https://platform.openai.com/api-keys
 			{
 				ModelName: "gpt-5.4",
@@ -77,12 +69,12 @@ func DefaultConfig() *Config {
 				APIBase:   "https://api.openai.com/v1",
 			},
 
-			// Anthropic Claude - https://console.anthropic.com/settings/keys
+			// Zhipu AI (智谱) - https://open.bigmodel.cn/usercenter/apikeys
 			{
-				ModelName: "claude-sonnet-4.6",
-				Provider:  "anthropic",
-				Model:     "claude-sonnet-4.6",
-				APIBase:   "https://api.anthropic.com/v1",
+				ModelName: "glm-4.7",
+				Provider:  "zhipu",
+				Model:     "glm-4.7",
+				APIBase:   "https://open.bigmodel.cn/api/paas/v4",
 			},
 
 			// DeepSeek - https://platform.deepseek.com/
@@ -99,14 +91,6 @@ func DefaultConfig() *Config {
 				Provider:  "venice",
 				Model:     "venice-uncensored",
 				APIBase:   "https://api.venice.ai/api/v1",
-			},
-
-			// Google Gemini - https://ai.google.dev/
-			{
-				ModelName: "gemini-2.0-flash",
-				Provider:  "gemini",
-				Model:     "gemini-2.0-flash-exp",
-				APIBase:   "https://generativelanguage.googleapis.com/v1beta",
 			},
 
 			// Qwen (通义千问) - https://dashscope.console.aliyun.com/apiKey
@@ -193,23 +177,6 @@ func DefaultConfig() *Config {
 				APIBase:   "https://api.shengsuanyun.com/v1",
 			},
 
-			// Antigravity (Google Cloud Code Assist) - OAuth only
-			{
-				ModelName:  "gemini-flash",
-				Provider:   "antigravity",
-				Model:      "gemini-3-flash",
-				AuthMethod: "oauth",
-			},
-
-			// GitHub Copilot - https://github.com/settings/tokens
-			{
-				ModelName:  "copilot-gpt-5.4",
-				Provider:   "github-copilot",
-				Model:      "gpt-5.4",
-				APIBase:    "http://localhost:4321",
-				AuthMethod: "oauth",
-			},
-
 			// Ollama (local) - https://ollama.com
 			{
 				ModelName: "llama3",
@@ -279,15 +246,6 @@ func DefaultConfig() *Config {
 				Provider:  "lmstudio",
 				Model:     "openai/gpt-oss-20b",
 				APIBase:   "http://localhost:1234/v1",
-			},
-
-			// Azure OpenAI - https://portal.azure.com
-			// model_name is a user-friendly alias; the model field's path after "azure/" is your deployment name
-			{
-				ModelName: "azure-gpt5",
-				Provider:  "azure",
-				Model:     "my-gpt5-deployment",
-				APIBase:   "https://your-resource.openai.azure.com",
 			},
 		},
 		Gateway: GatewayConfig{
