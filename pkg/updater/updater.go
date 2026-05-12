@@ -1,3 +1,5 @@
+//go:build updater
+
 package updater
 
 import (

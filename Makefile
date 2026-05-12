@@ -37,6 +37,11 @@ WEB_GO?=$(GO)
 CGO_ENABLED?=0
 GO_BUILD_TAGS?=goolm,stdjson
 
+# Optional feature build tags
+# Available: audio (voice), updater (self-update), whatsapp, whatsapp_native
+# Example: make build OPTIONAL_TAGS="audio,updater"
+OPTIONAL_TAGS?=
+
 # Channel build tags (default: none, add channels via CHANNEL_TAGS)
 # Available: dingtalk, discord, feishu, irc, line, maixcam, mqtt, onebot,
 #             qq, slack, teams_webhook, telegram, vk, whatsapp, whatsapp_native
@@ -45,7 +50,8 @@ CHANNEL_TAGS?=
 comma:=,
 empty:=,
 space:=$(empty) $(empty)
-GO_BUILD_TAGS_FULL:=$(strip $(GO_BUILD_TAGS)$(if $(CHANNEL_TAGS),$(comma)$(CHANNEL_TAGS),))
+ALL_OPTIONAL_TAGS:=$(strip $(OPTIONAL_TAGS)$(if $(CHANNEL_TAGS),$(comma)$(CHANNEL_TAGS),))
+GO_BUILD_TAGS_FULL:=$(strip $(GO_BUILD_TAGS)$(if $(ALL_OPTIONAL_TAGS),$(comma)$(ALL_OPTIONAL_TAGS),))
 GOFLAGS?=-v -tags $(GO_BUILD_TAGS_FULL)
 GO_BUILD_TAGS_NO_GOOLM:=$(subst $(space),$(comma),$(strip $(filter-out goolm,$(subst $(comma),$(space),$(GO_BUILD_TAGS)))))
 
@@ -491,8 +497,9 @@ help:
 	@grep -E '^## ' $(MAKEFILE_LIST) | sort | awk -F': ' '{printf "  %-16s %s\n", substr($$1, 4), $$2}'
 	@echo ""
 	@echo "Examples:"
-	@echo "  make build                                    # Build for current platform (pico+weixin+wecom)"
+	@echo "  make build                                    # Build for current platform"
 	@echo "  make build CHANNEL_TAGS=telegram,discord     # Build with extra channels"
+	@echo "  make build OPTIONAL_TAGS=audio,updater        # Build with optional features"
 	@echo "  make install                                  # Install to ~/.local/bin"
 	@echo "  make uninstall                                # Remove from /usr/local/bin"
 	@echo "  make install-skills                           # Install skills to workspace"
@@ -503,15 +510,21 @@ help:
 	@echo "  INSTALL_PREFIX          # Installation prefix (default: ~/.local)"
 	@echo "  WORKSPACE_DIR           # Workspace directory (default: ~/.picoclaw/workspace)"
 	@echo "  VERSION                 # Version string (default: git describe)"
-	@echo "  CHANNEL_TAGS            # Add channel support (e.g., telegram,discord,slack)"
+	@echo "  CHANNEL_TAGS            # Add channel support (e.g., telegram,discord)"
+	@echo "  OPTIONAL_TAGS           # Add optional features (e.g., audio,updater)"
 	@echo ""
 	@echo "Available Channel Tags:"
 	@echo "  dingtalk, discord, feishu, irc, line, maixcam, mqtt, onebot,"
 	@echo "  qq, slack, teams_webhook, telegram, vk, whatsapp, whatsapp_native"
+	@echo ""
+	@echo "Available Optional Tags:"
+	@echo "  audio   - Voice (ASR/TTS) support"
+	@echo "  updater - Self-update feature"
 	@echo ""
 	@echo "Current Configuration:"
 	@echo "  Platform: $(PLATFORM)/$(ARCH)"
 	@echo "  Binary: $(BINARY_PATH)"
 	@echo "  Install Prefix: $(INSTALL_PREFIX)"
 	@echo "  Channel Tags: $(if $(CHANNEL_TAGS),$(CHANNEL_TAGS),default (pico+weixin+wecom))"
+	@echo "  Optional Tags: $(if $(OPTIONAL_TAGS),$(OPTIONAL_TAGS),none)"
 	@echo "  Workspace: $(WORKSPACE_DIR)"
