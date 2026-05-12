@@ -1,3 +1,5 @@
+//go:build slack
+
 package slack
 
 import (

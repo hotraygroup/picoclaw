@@ -1,3 +1,5 @@
+//go:build dingtalk
+
 package dingtalk
 
 import (

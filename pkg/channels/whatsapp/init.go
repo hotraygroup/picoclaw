@@ -1,3 +1,5 @@
+//go:build whatsapp
+
 package whatsapp
 
 import (

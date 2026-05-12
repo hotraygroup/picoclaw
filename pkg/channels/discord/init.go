@@ -1,3 +1,5 @@
+//go:build discord
+
 package discord
 
 import (

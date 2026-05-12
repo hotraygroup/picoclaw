@@ -1,3 +1,5 @@
+//go:build teams_webhook
+
 package teamswebhook
 
 import (

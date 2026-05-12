@@ -1,3 +1,5 @@
+//go:build vk
+
 package vk
 
 import (

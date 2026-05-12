@@ -1,3 +1,5 @@
+//go:build irc
+
 package irc
 
 import (

@@ -1,3 +1,5 @@
+//go:build qq
+
 package qq
 
 import (

@@ -1,3 +1,5 @@
+//go:build maixcam
+
 package maixcam
 
 import (

@@ -36,19 +36,18 @@ GO?=go
 WEB_GO?=$(GO)
 CGO_ENABLED?=0
 GO_BUILD_TAGS?=goolm,stdjson
-GOFLAGS?=-v -tags $(GO_BUILD_TAGS)
-GOCACHE?=$(CURDIR)/.cache/go-build
-GOMODCACHE?=$(CURDIR)/.cache/go-mod
-GOTOOLCHAIN?=local
-export CGO_ENABLED
-export GOCACHE
-export GOMODCACHE
-export GOTOOLCHAIN
+
+# Channel build tags (default: none, add channels via CHANNEL_TAGS)
+# Available: dingtalk, discord, feishu, irc, line, maixcam, mqtt, onebot,
+#             qq, slack, teams_webhook, telegram, vk, whatsapp, whatsapp_native
+# Example: make build CHANNEL_TAGS="telegram,discord,slack"
+CHANNEL_TAGS?=
 comma:=,
-empty:=
+empty:=,
 space:=$(empty) $(empty)
+GO_BUILD_TAGS_FULL:=$(strip $(GO_BUILD_TAGS)$(if $(CHANNEL_TAGS),$(comma)$(CHANNEL_TAGS),))
+GOFLAGS?=-v -tags $(GO_BUILD_TAGS_FULL)
 GO_BUILD_TAGS_NO_GOOLM:=$(subst $(space),$(comma),$(strip $(filter-out goolm,$(subst $(comma),$(space),$(GO_BUILD_TAGS)))))
-GOFLAGS_NO_GOOLM?=-v -tags $(GO_BUILD_TAGS_NO_GOOLM)
 
 # Patch MIPS LE ELF e_flags (offset 36) for NaN2008-only kernels (e.g. Ingenic X2600).
 #
@@ -241,15 +240,15 @@ build-whatsapp-native: generate
 ## @echo "Building $(BINARY_NAME) with WhatsApp native for $(PLATFORM)/$(ARCH)..."
 	@echo "Building for multiple platforms..."
 	@mkdir -p $(BUILD_DIR)
-	GOOS=linux GOARCH=amd64 $(GO) build -tags $(GO_BUILD_TAGS),whatsapp_native -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)-linux-amd64 ./$(CMD_DIR)
-	GOOS=linux GOARCH=arm GOARM=7 $(GO) build -tags $(GO_BUILD_TAGS),whatsapp_native -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)-linux-arm ./$(CMD_DIR)
-	GOOS=linux GOARCH=arm64 $(GO) build -tags $(GO_BUILD_TAGS),whatsapp_native -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)-linux-arm64 ./$(CMD_DIR)
-	GOOS=linux GOARCH=loong64 $(GO) build -tags $(GO_BUILD_TAGS),whatsapp_native -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)-linux-loong64 ./$(CMD_DIR)
-	GOOS=linux GOARCH=riscv64 $(GO) build -tags $(GO_BUILD_TAGS),whatsapp_native -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)-linux-riscv64 ./$(CMD_DIR)
+	GOOS=linux GOARCH=amd64 $(GO) build -tags $(GO_BUILD_TAGS_FULL),whatsapp_native -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)-linux-amd64 ./$(CMD_DIR)
+	GOOS=linux GOARCH=arm GOARM=7 $(GO) build -tags $(GO_BUILD_TAGS_FULL),whatsapp_native -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)-linux-arm ./$(CMD_DIR)
+	GOOS=linux GOARCH=arm64 $(GO) build -tags $(GO_BUILD_TAGS_FULL),whatsapp_native -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)-linux-arm64 ./$(CMD_DIR)
+	GOOS=linux GOARCH=loong64 $(GO) build -tags $(GO_BUILD_TAGS_FULL),whatsapp_native -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)-linux-loong64 ./$(CMD_DIR)
+	GOOS=linux GOARCH=riscv64 $(GO) build -tags $(GO_BUILD_TAGS_FULL),whatsapp_native -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)-linux-riscv64 ./$(CMD_DIR)
 	GOOS=linux GOARCH=mipsle GOMIPS=softfloat $(GO) build -tags $(GO_BUILD_TAGS_NO_GOOLM),whatsapp_native -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)-linux-mipsle ./$(CMD_DIR)
 	$(call PATCH_MIPS_FLAGS,$(BUILD_DIR)/$(BINARY_NAME)-linux-mipsle)
-	GOOS=darwin GOARCH=arm64 $(GO) build -tags $(GO_BUILD_TAGS),whatsapp_native -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)-darwin-arm64 ./$(CMD_DIR)
-	GOOS=windows GOARCH=amd64 $(GO) build -tags $(GO_BUILD_TAGS),whatsapp_native -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)-windows-amd64.exe ./$(CMD_DIR)
+	GOOS=darwin GOARCH=arm64 $(GO) build -tags $(GO_BUILD_TAGS_FULL),whatsapp_native -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)-darwin-arm64 ./$(CMD_DIR)
+	GOOS=windows GOARCH=amd64 $(GO) build -tags $(GO_BUILD_TAGS_FULL),whatsapp_native -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)-windows-amd64.exe ./$(CMD_DIR)
 ## @$(GO) build $(GOFLAGS) -tags whatsapp_native -ldflags "$(LDFLAGS)" -o $(BINARY_PATH) ./$(CMD_DIR)
 	@echo "Build complete"
 ##	@ln -sf $(BINARY_NAME)-$(PLATFORM)-$(ARCH) $(BUILD_DIR)/$(BINARY_NAME)
@@ -492,20 +491,27 @@ help:
 	@grep -E '^## ' $(MAKEFILE_LIST) | sort | awk -F': ' '{printf "  %-16s %s\n", substr($$1, 4), $$2}'
 	@echo ""
 	@echo "Examples:"
-	@echo "  make build              # Build for current platform"
-	@echo "  make install            # Install to ~/.local/bin"
-	@echo "  make uninstall          # Remove from /usr/local/bin"
-	@echo "  make install-skills     # Install skills to workspace"
-	@echo "  make docker-build       # Build minimal Docker image"
-	@echo "  make docker-test        # Test MCP tools in Docker"
+	@echo "  make build                                    # Build for current platform (pico+weixin+wecom)"
+	@echo "  make build CHANNEL_TAGS=telegram,discord     # Build with extra channels"
+	@echo "  make install                                  # Install to ~/.local/bin"
+	@echo "  make uninstall                                # Remove from /usr/local/bin"
+	@echo "  make install-skills                           # Install skills to workspace"
+	@echo "  make docker-build                             # Build minimal Docker image"
+	@echo "  make docker-test                              # Test MCP tools in Docker"
 	@echo ""
 	@echo "Environment Variables:"
 	@echo "  INSTALL_PREFIX          # Installation prefix (default: ~/.local)"
 	@echo "  WORKSPACE_DIR           # Workspace directory (default: ~/.picoclaw/workspace)"
 	@echo "  VERSION                 # Version string (default: git describe)"
+	@echo "  CHANNEL_TAGS            # Add channel support (e.g., telegram,discord,slack)"
+	@echo ""
+	@echo "Available Channel Tags:"
+	@echo "  dingtalk, discord, feishu, irc, line, maixcam, mqtt, onebot,"
+	@echo "  qq, slack, teams_webhook, telegram, vk, whatsapp, whatsapp_native"
 	@echo ""
 	@echo "Current Configuration:"
 	@echo "  Platform: $(PLATFORM)/$(ARCH)"
 	@echo "  Binary: $(BINARY_PATH)"
 	@echo "  Install Prefix: $(INSTALL_PREFIX)"
+	@echo "  Channel Tags: $(if $(CHANNEL_TAGS),$(CHANNEL_TAGS),default (pico+weixin+wecom))"
 	@echo "  Workspace: $(WORKSPACE_DIR)"

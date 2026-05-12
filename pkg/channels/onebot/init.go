@@ -1,3 +1,5 @@
+//go:build onebot
+
 package onebot
 
 import (
