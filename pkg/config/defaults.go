@@ -334,12 +334,6 @@ func DefaultConfig() *Config {
 				},
 				Registries: SkillsRegistriesConfig{
 					&SkillRegistryConfig{
-						Name:    "clawhub",
-						Enabled: true,
-						BaseURL: "https://clawhub.ai",
-						Param:   map[string]any{},
-					},
-					&SkillRegistryConfig{
 						Name:    "github",
 						Enabled: true,
 						BaseURL: "https://github.com",

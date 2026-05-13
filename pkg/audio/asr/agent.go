@@ -1,3 +1,5 @@
+//go:build audio
+
 package asr
 
 import (
