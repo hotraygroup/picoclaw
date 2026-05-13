@@ -28,5 +28,13 @@ func GetVersionInfo() (string, string) {
 }
 
 func NewUpdateCommand(name string) *cobra.Command {
-	return nil
+	cmd := &cobra.Command{
+		Use:   "update",
+		Short: "Update is disabled (build without -tags updater)",
+		Run: func(cmd *cobra.Command, args []string) {
+			cmd.Println("Update feature is disabled in this build.")
+			cmd.Println("To enable, rebuild with: go build -tags updater")
+		},
+	}
+	return cmd
 }
